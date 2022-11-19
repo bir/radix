@@ -551,12 +551,36 @@ func recursiveWalk[V any](n *node[V], fn WalkFn[V]) bool {
 	return false
 }
 
-// ToMap is used to walk the tree and convert it into a map
+// ToMap is used to walk the tree and convert it into a map.
 func (t *Tree[V]) ToMap() map[string]V {
 	out := make(map[string]V, t.size)
 	t.Walk(func(k string, v V) bool {
 		out[k] = v
 		return false
 	})
+
+	return out
+}
+
+// Slice walks the tree and creates a slice starting at offset, max length of limit.
+func (t *Tree[V]) Slice(offset, limit int) []V {
+	out := make([]V, 0, limit)
+	pos := 0
+	t.Walk(func(k string, v V) bool {
+		if pos >= offset {
+			out = append(out, v)
+			if len(out) >= limit {
+				return true
+			}
+		}
+
+		pos++
+		return false
+	})
+
+	if len(out) == 0 {
+		return nil
+	}
+
 	return out
 }

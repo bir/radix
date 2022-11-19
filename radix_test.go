@@ -380,6 +380,34 @@ func TestWalkDelete(t *testing.T) {
 	}
 }
 
+func TestSlice(t *testing.T) {
+	r := radix.New[int]()
+	r.Insert("init0/0", 0)
+	r.Insert("init0/1", 1)
+	r.Insert("init0/2", 2)
+	r.Insert("init0/3", 3)
+	r.Insert("init1/0", 4)
+	r.Insert("init1/1", 5)
+	r.Insert("init1/2", 6)
+	r.Insert("init1/3", 7)
+	r.Insert("init2", 8)
+
+	s := r.Slice(0, 5)
+	if !reflect.DeepEqual(s, []int{0, 1, 2, 3, 4}) {
+		t.Fatalf("mismatch slice %v", s)
+	}
+
+	s = r.Slice(5, 5)
+	if !reflect.DeepEqual(s, []int{5, 6, 7, 8}) {
+		t.Fatalf("mismatch slice %v", s)
+	}
+
+	s = r.Slice(10, 5)
+	if s != nil {
+		t.Fatalf("mismatch slice %v", s)
+	}
+}
+
 // generateUUID is used to generate a random UUID
 func generateUUID() string {
 	buf := make([]byte, 16)
