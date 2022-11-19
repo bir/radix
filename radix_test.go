@@ -40,7 +40,7 @@ func TestRadix(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing key: %v", k)
 		}
-		if *out != v {
+		if out != v {
 			t.Fatalf("value mis-match: %v %v", out, v)
 		}
 	}
@@ -60,7 +60,7 @@ func TestRadix(t *testing.T) {
 		if !ok {
 			t.Fatalf("missing key: %v", k)
 		}
-		if *out != v {
+		if out != v {
 			t.Fatalf("value mis-match: %v %v", out, v)
 		}
 	}
@@ -80,11 +80,11 @@ func TestRoot(t *testing.T) {
 		t.Fatalf("bad")
 	}
 	val, ok := r.Get("")
-	if !ok || *val != true {
+	if !ok || val != true {
 		t.Fatalf("bad: %v", val)
 	}
 	val, ok = r.Delete("")
-	if !ok || *val != true {
+	if !ok || val != true {
 		t.Fatalf("bad: %v", val)
 	}
 }
@@ -118,7 +118,7 @@ func TestDeletePrefix(t *testing.T) {
 	cases := []exp{
 		{[]string{"", "A", "AB", "ABC", "R", "S"}, "A", []string{"", "R", "S"}, 3},
 		{[]string{"", "A", "AB", "ABC", "R", "S"}, "ABC", []string{"", "A", "AB", "R", "S"}, 1},
-		{[]string{"", "A", "AB", "ABC", "R", "S"}, "", []string{}, 6},
+		{[]string{"", "A", "AB", "ABC", "R", "S"}, "", nil, 6},
 		{[]string{"", "A", "AB", "ABC", "R", "S"}, "S", []string{"", "A", "AB", "ABC", "R"}, 1},
 		{[]string{"", "A", "AB", "ABC", "R", "S"}, "SS", []string{"", "A", "AB", "ABC", "R", "S"}, 0},
 	}
@@ -134,7 +134,7 @@ func TestDeletePrefix(t *testing.T) {
 			t.Fatalf("Bad delete, expected %v to be deleted but got %v", test.numDeleted, deleted)
 		}
 
-		out := []string{}
+		var out []string
 		fn := func(s string, v bool) bool {
 			out = append(out, s)
 			return false
@@ -299,7 +299,7 @@ func TestWalkPath(t *testing.T) {
 	cases := []exp{
 		{
 			"f",
-			[]string{},
+			nil,
 		},
 		{
 			"foo",
@@ -327,12 +327,12 @@ func TestWalkPath(t *testing.T) {
 		},
 		{
 			"z",
-			[]string{},
+			nil,
 		},
 	}
 
 	for _, test := range cases {
-		out := []string{}
+		var out []string
 		fn := func(s string, v interface{}) bool {
 			out = append(out, s)
 			return false
@@ -413,23 +413,6 @@ func BenchmarkInsert(b *testing.B) {
 	}
 	runtime.ReadMemStats(&m)
 	fmt.Printf("\nAlloc = %v MB, TotalAlloc = %v MB, Sys = %v MB,NumGC = %v\n", bToMb(m.Alloc), bToMb(m.TotalAlloc), bToMb(m.Sys), m.NumGC)
-}
-
-func TestLoad(b *testing.T) {
-	var m runtime.MemStats
-	r := radix.New[string]()
-	for i := 0; i < 5000000; i++ {
-		r.Insert(fmt.Sprintf("%d", i), generateUUID())
-	}
-	runtime.ReadMemStats(&m)
-	updateCt := 0
-	for n := 0; n < 100000000; n++ {
-		_, updated := r.Insert(strconv.Itoa(n), "boo")
-		if updated {
-			updateCt++
-		}
-	}
-	runtime.ReadMemStats(&m)
 }
 
 func bToMb(b uint64) uint64 {

@@ -149,7 +149,7 @@ func longestPrefix(k1, k2 string) int {
 
 // Insert is used to add a new entry or update
 // an existing entry. Returns true if an existing record is updated.
-func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
+func (t *Tree[V]) Insert(s string, v V) (V, bool) {
 	var parent *node[V]
 	n := t.root
 	search := s
@@ -159,7 +159,7 @@ func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
 			if n.isLeaf() {
 				old := n.leaf.val
 				n.leaf.val = v
-				return &old, true
+				return old, true
 			}
 
 			n.leaf = &leafNode[V]{
@@ -167,7 +167,7 @@ func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
 				val: v,
 			}
 			t.size++
-			return nil, false
+			return *new(V), false
 		}
 
 		// Look for the edge
@@ -188,7 +188,7 @@ func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
 			}
 			parent.addEdge(e)
 			t.size++
-			return nil, false
+			return *new(V), false
 		}
 
 		// Determine the longest prefix of the search key on match
@@ -222,7 +222,7 @@ func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
 		search = search[commonPrefix:]
 		if len(search) == 0 {
 			child.leaf = leaf
-			return nil, false
+			return *new(V), false
 		}
 
 		// Create a new edge for the node
@@ -233,13 +233,13 @@ func (t *Tree[V]) Insert(s string, v V) (*V, bool) {
 				prefix: search,
 			},
 		})
-		return nil, false
+		return *new(V), false
 	}
 }
 
 // Delete is used to delete a key, returning the previous
 // value and if it was deleted
-func (t *Tree[V]) Delete(s string) (*V, bool) {
+func (t *Tree[V]) Delete(s string) (V, bool) {
 	var parent *node[V]
 	var label byte
 	n := t.root
@@ -268,7 +268,7 @@ func (t *Tree[V]) Delete(s string) (*V, bool) {
 			break
 		}
 	}
-	return nil, false
+	return *new(V), false
 
 DELETE:
 	// Delete the leaf
@@ -291,7 +291,7 @@ DELETE:
 		parent.mergeChild()
 	}
 
-	return &leaf.val, true
+	return leaf.val, true
 }
 
 // DeletePrefix is used to delete the subtree under a prefix
@@ -349,16 +349,16 @@ func (n *node[V]) mergeChild() {
 	n.edges = child.edges
 }
 
-// Get is used to lookup a specific key, returning
+// Get is used to look up a specific key, returning
 // the value and if it was found
-func (t *Tree[V]) Get(s string) (*V, bool) {
+func (t *Tree[V]) Get(s string) (V, bool) {
 	n := t.root
 	search := s
 	for {
 		// Check for key exhaustion
 		if len(search) == 0 {
 			if n.isLeaf() {
-				return &n.leaf.val, true
+				return n.leaf.val, true
 			}
 			break
 		}
@@ -376,12 +376,12 @@ func (t *Tree[V]) Get(s string) (*V, bool) {
 			break
 		}
 	}
-	return nil, false
+	return *new(V), false
 }
 
 // LongestPrefix is like Get, but instead of an
 // exact match, it will return the longest prefix match.
-func (t *Tree[V]) LongestPrefix(s string) (string, *V, bool) {
+func (t *Tree[V]) LongestPrefix(s string) (string, V, bool) {
 	var last *leafNode[V]
 	n := t.root
 	search := s
@@ -409,18 +409,20 @@ func (t *Tree[V]) LongestPrefix(s string) (string, *V, bool) {
 			break
 		}
 	}
+
 	if last != nil {
-		return last.key, &last.val, true
+		return last.key, last.val, true
 	}
-	return "", nil, false
+
+	return "", *new(V), false
 }
 
 // Minimum is used to return the minimum value in the tree
-func (t *Tree[V]) Minimum() (string, *V, bool) {
+func (t *Tree[V]) Minimum() (string, V, bool) {
 	n := t.root
 	for {
 		if n.isLeaf() {
-			return n.leaf.key, &n.leaf.val, true
+			return n.leaf.key, n.leaf.val, true
 		}
 		if len(n.edges) > 0 {
 			n = n.edges[0].node
@@ -428,11 +430,11 @@ func (t *Tree[V]) Minimum() (string, *V, bool) {
 			break
 		}
 	}
-	return "", nil, false
+	return "", *new(V), false
 }
 
 // Maximum is used to return the maximum value in the tree
-func (t *Tree[V]) Maximum() (string, *V, bool) {
+func (t *Tree[V]) Maximum() (string, V, bool) {
 	n := t.root
 	for {
 		if num := len(n.edges); num > 0 {
@@ -440,11 +442,11 @@ func (t *Tree[V]) Maximum() (string, *V, bool) {
 			continue
 		}
 		if n.isLeaf() {
-			return n.leaf.key, &n.leaf.val, true
+			return n.leaf.key, n.leaf.val, true
 		}
 		break
 	}
-	return "", nil, false
+	return "", *new(V), false
 }
 
 // Walk is used to walk the tree
